@@ -5,7 +5,11 @@
 #include <QLabel>
 #include <QWidget>
 #include <QGridLayout>
-#include <opencv2/opencv.hpp>
+#include <QPainter>
+#include <QRect>
+#include <QString>
+#include "widget.h"
+
 
 class MainWindow : public QMainWindow
 {
@@ -14,7 +18,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void afficherMat(cv::Mat mat);
+
+
 
 
 public slots:
@@ -22,40 +27,39 @@ public slots:
     void openFile();
     void quit();
     void separation();
-    void floutage();
-    void sobelSlot();
     void resizeEvent(QResizeEvent * event);
-    void mousePressEvent(QMouseEvent * event);
-    void mouseReleaseEvent(QMouseEvent * event);
+    void sauverRectangle (QRect *rect, QString s);
+
+public:
+
+    QWidget *widge;
 
 private:
+
     QGridLayout *grid;
     QMenu *aPropos;
     QMenu *fichier;
-    QMenu *traitement;
+
     QLabel *label;
-    QLabel *labeltmp;
     QLabel *labelG;
     QLabel *labelD;
+
     QAction *aProposAction;
     QAction *ouvrir;
     QAction *quitter;
     QAction *separerImage;
-    QAction *flouterImage;
-    QAction *sobel;
     QImage image;
     QImage imageG;
     QImage imageD;
     QImage imagerect;
-    QImage imagetmp;
     QPixmap map;
     QPixmap maprect;
-    QPixmap maptmp;
-    cv::Mat imageCV;
+    QPixmap qpix;
     int xrec;
     int yrec;
     int h;
     int w;
+
 };
 
 #endif // MAINWINDOW_H
