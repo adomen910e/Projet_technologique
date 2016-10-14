@@ -9,7 +9,7 @@
 #include <QRect>
 #include <QString>
 #include "widget.h"
-
+#include <opencv2/opencv.hpp>
 
 class MainWindow : public QMainWindow
 {
@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+    void afficherMat(cv::Mat mat);
 
 
 
@@ -27,6 +27,8 @@ public slots:
     void openFile();
     void quit();
     void separation();
+    void floutage();
+    void sobelSlot();
     void resizeEvent(QResizeEvent * event);
     void sauverRectangle (QRect *rect, QString s);
 
@@ -39,11 +41,13 @@ private:
     QGridLayout *grid;
     QMenu *aPropos;
     QMenu *fichier;
-
+    QMenu *traitement;
     QLabel *label;
+    QLabel *labeltmp;
     QLabel *labelG;
     QLabel *labelD;
-
+    QAction *flouterImage;
+    QAction *sobel;
     QAction *aProposAction;
     QAction *ouvrir;
     QAction *quitter;
@@ -52,9 +56,12 @@ private:
     QImage imageG;
     QImage imageD;
     QImage imagerect;
+    QImage imagetmp;
     QPixmap map;
     QPixmap maprect;
     QPixmap qpix;
+    QPixmap maptmp;
+    cv::Mat imageCV;
     int xrec;
     int yrec;
     int h;

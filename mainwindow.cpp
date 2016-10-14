@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     label = new QLabel(this);
-
+    labeltmp = new QLabel(this);
     label->move(0,30);
 
     labelG = new QLabel(this);
@@ -27,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent)
     separerImage=new QAction(tr("&Separer l'image en 2"),this);
     aPropos = menuBar()->addMenu(tr("&A Propos"));
     fichier = menuBar()->addMenu(tr("&Fichier"));
+    flouterImage=new QAction(tr("&Flouter l'image"),this);
+    sobel=new QAction(tr("&Effet Sobel"),this);
 
     aPropos->addAction(aProposAction);
     fichier->addAction(ouvrir);
@@ -43,6 +45,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    aPropos=NULL;
+    fichier=NULL;
+    label=NULL;
+    labelG=NULL;
+    labelD=NULL;
+    aProposAction=NULL;
+    ouvrir=NULL;
+    quitter=NULL;
+    xrec = 0;
+    yrec = 0;
 }
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
@@ -66,52 +78,78 @@ void MainWindow::openFile()
 {
     labelG->clear();
     labelD->clear();
-
     QString fileName = QFileDialog::getOpenFileName(this,tr("Ouvrir une image"),"/",tr("Image Files (*.png *.jpg *.bmp)"));
     QImageReader *reader = new QImageReader();
-
     reader->setFileName(fileName);
     image =reader->read();
-
     map=QPixmap::fromImage(image);
     label->setPixmap(map);
-
     fichier->addAction(separerImage);
     QObject::connect(separerImage,SIGNAL(triggered()),this,SLOT(separation()));
-
+    traitement = menuBar()->addMenu(tr("&Traitement de l'image"));
+    traitement->addAction(flouterImage);
+    traitement->addAction(sobel);
+    QObject::connect(flouterImage,SIGNAL(triggered()),this,SLOT(floutage()));
+    QObject::connect(sobel,SIGNAL(triggered()),this,SLOT(sobelSlot()));
     label->resize(image.size());
-    this->resize(image.size());
-
+    this->resize(image.width(),image.height()+30);
     label->show();
+}
+
+void MainWindow::afficherMat(cv::Mat mat){
+    imagetmp = QImage(mat.data, mat.cols, mat.rows, mat.step, image.format());
+    maptmp = QPixmap::fromImage(imagetmp);
+    labeltmp->resize(image.size());
+    labeltmp->move(10+label->width(),30);
+    labeltmp->show();
+    labeltmp->setPixmap(maptmp);
+    this->resize(2*label->width()+10,label->height()+30);
+}
+
+void MainWindow::sobelSlot(){
+    cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
+    imageCV = tmp;
+    cv::Mat src_gray;
+    cv::Mat grad_x, grad_y;
+    cv::Mat abs_grad_x, abs_grad_y;
+    cv::cvtColor( imageCV, src_gray, cv::COLOR_BGR2GRAY );
+    cv::Sobel(src_gray,grad_x,CV_16S,1,0,3,1,0,cv::BORDER_DEFAULT);
+    cv::Sobel(src_gray,grad_y,CV_16S,0,1,3,1,0,cv::BORDER_DEFAULT);
+    cv::convertScaleAbs(grad_x,abs_grad_x);
+    cv::convertScaleAbs(grad_y,abs_grad_y);
+    cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, imageCV );
+    cv::imshow("image sobel",imageCV);
+    afficherMat(imageCV);
+}
+
+void MainWindow::floutage(){
+    cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
+    imageCV = tmp;
+    cv::blur(imageCV,imageCV,cv::Size(5,5));
+    afficherMat(imageCV);
 }
 
 void MainWindow::separation(){
     label->clear();
+    this->resize(image.width(),image.height()+30);
     QImage image1(w/2,h,QImage::Format_RGB32);
     QImage image2(w/2,h,QImage::Format_RGB32);
-
     for(int y = 0;y<h;y++){
         for(int x = 0;x<w/2;x++){
             image1.setPixel(x,y,image.pixel(x,y));
             image2.setPixel(x,y,image.pixel(x+w/2,y));
         }
     }
-
     imageG = image1;
     imageD = image2;
-
     map=QPixmap::fromImage(imageG);
-
     labelG->move(0,30);
     labelG->setPixmap(map);
     labelG->show();
-
     map=QPixmap::fromImage(imageD);
-
-    labelD->move(w/2+15,30);
+    labelD->move(w/2+10,30);
     labelD->setPixmap(map);
     labelD->show();
-
     this->resize(image.width()+10,image.height());
 }
 
