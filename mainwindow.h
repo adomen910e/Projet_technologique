@@ -37,7 +37,7 @@ public:
     QWidget *widge;
 
 private:
-
+    bool resizebool = true;
     QGridLayout *grid;
     QMenu *aPropos;
     QMenu *fichier;

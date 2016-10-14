@@ -17,7 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
     label = new QLabel(this);
     labeltmp = new QLabel(this);
     label->move(0,30);
-
     labelG = new QLabel(this);
     labelD = new QLabel(this);
 
@@ -93,17 +92,17 @@ void MainWindow::openFile()
     QObject::connect(sobel,SIGNAL(triggered()),this,SLOT(sobelSlot()));
     label->resize(image.size());
     this->resize(image.width(),image.height()+30);
+    labeltmp->move(10+label->width(),45);
     label->show();
 }
 
 void MainWindow::afficherMat(cv::Mat mat){
-    imagetmp = QImage(mat.data, mat.cols, mat.rows, mat.step, image.format());
+    imagetmp = QImage(mat.data, mat.cols, mat.rows, mat.step, image.Format_Indexed8);
     maptmp = QPixmap::fromImage(imagetmp);
     labeltmp->resize(image.size());
-    labeltmp->move(10+label->width(),30);
     labeltmp->show();
     labeltmp->setPixmap(maptmp);
-    this->resize(2*label->width()+10,label->height()+30);
+    //this->resize(2*label->width()+10,label->height()+30);
 }
 
 void MainWindow::sobelSlot(){
@@ -118,7 +117,6 @@ void MainWindow::sobelSlot(){
     cv::convertScaleAbs(grad_x,abs_grad_x);
     cv::convertScaleAbs(grad_y,abs_grad_y);
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, imageCV );
-    cv::imshow("image sobel",imageCV);
     afficherMat(imageCV);
 }
 
@@ -126,7 +124,15 @@ void MainWindow::floutage(){
     cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
     imageCV = tmp;
     cv::blur(imageCV,imageCV,cv::Size(5,5));
-    afficherMat(imageCV);
+    imagetmp = QImage(imageCV.data, imageCV.cols, imageCV.rows, imageCV.step, image.format());
+    maptmp = QPixmap::fromImage(imagetmp);
+    labeltmp->resize(image.size());
+    labeltmp->show();
+    labeltmp->setPixmap(maptmp);
+    if(resizebool){
+        this->resize(2*label->width()+10,label->height()+30);
+        resizebool = false;
+    }
 }
 
 void MainWindow::separation(){
