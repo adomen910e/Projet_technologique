@@ -17,9 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
     label = new QLabel(this);
     labeltmp = new QLabel(this);
     label->move(0,30);
-    labelG = new QLabel(this);
-    labelD = new QLabel(this);
-
     aProposAction=new QAction(tr("&A Propos"),this);
     ouvrir=new QAction(tr("&Ouvrir"),this);
     quitter=new QAction(tr("&Quitter"),this);
@@ -28,14 +25,11 @@ MainWindow::MainWindow(QWidget *parent)
     fichier = menuBar()->addMenu(tr("&Fichier"));
     flouterImage=new QAction(tr("&Flouter l'image"),this);
     sobel=new QAction(tr("&Effet Sobel"),this);
-
     aPropos->addAction(aProposAction);
     fichier->addAction(ouvrir);
     fichier->addAction(quitter);
-
     widge = new Widget(this);
     this->setCentralWidget(widge);
-
     QObject::connect(aProposAction,SIGNAL(triggered()),this,SLOT(afficherMessage()));
     QObject::connect(ouvrir,SIGNAL(triggered()),this,SLOT(openFile()));
     QObject::connect(quitter,SIGNAL(triggered()),this,SLOT(quit()));
@@ -47,13 +41,12 @@ MainWindow::~MainWindow()
     aPropos=NULL;
     fichier=NULL;
     label=NULL;
-    labelG=NULL;
-    labelD=NULL;
     aProposAction=NULL;
     ouvrir=NULL;
     quitter=NULL;
     xrec = 0;
     yrec = 0;
+    nb_label = 0;
 }
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
@@ -75,8 +68,8 @@ void MainWindow::afficherMessage()
 
 void MainWindow::openFile()
 {
-    labelG->clear();
-    labelD->clear();
+    nb_label = 1;
+    labeltmp->clear();
     QString fileName = QFileDialog::getOpenFileName(this,tr("Ouvrir une image"),"/",tr("Image Files (*.png *.jpg *.bmp)"));
     QImageReader *reader = new QImageReader();
     reader->setFileName(fileName);
@@ -88,11 +81,13 @@ void MainWindow::openFile()
     traitement = menuBar()->addMenu(tr("&Traitement de l'image"));
     traitement->addAction(flouterImage);
     traitement->addAction(sobel);
+    traitement->addAction(canny);
     QObject::connect(flouterImage,SIGNAL(triggered()),this,SLOT(floutage()));
     QObject::connect(sobel,SIGNAL(triggered()),this,SLOT(sobelSlot()));
+    QObject::connect(canny,SIGNAL(triggered()),this,SLOT(cannySlot()));
     label->resize(image.size());
     this->resize(image.width(),image.height()+30);
-    labeltmp->move(10+label->width(),45);
+    labeltmp->move(10+label->width(),30);
     label->show();
 }
 
@@ -102,10 +97,11 @@ void MainWindow::afficherMat(cv::Mat mat){
     labeltmp->resize(image.size());
     labeltmp->show();
     labeltmp->setPixmap(maptmp);
-    //this->resize(2*label->width()+10,label->height()+30);
+    this->resize(2*label->width(),label->height());
 }
 
 void MainWindow::sobelSlot(){
+    nb_label = 2;
     cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
     imageCV = tmp;
     cv::Mat src_gray;
@@ -119,8 +115,26 @@ void MainWindow::sobelSlot(){
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, imageCV );
     afficherMat(imageCV);
 }
+void MainWindow::cannySlot(){
+    nb_label = 2;
+    cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
+    cv::Mat imgGrayscale;
+    cv::Mat imgBlurred;
+    cv::Mat imgCanny;
+    imageCV = tmp;
+    cv::cvtColor(imageCV, imgGrayscale, CV_BGR2GRAY);
+    cv::GaussianBlur(imgGrayscale,imgBlurred,cv::Size(5, 5),1.5);
+    cv::Canny(imgBlurred,imgCanny,100,200);
+    imagetmp = QImage(imgCanny.data, imgCanny.cols, imgCanny.rows, imgCanny.step, image.format());
+    maptmp = QPixmap::fromImage(imagetmp);
+    labeltmp->resize(image.size());
+    labeltmp->show();
+    labeltmp->setPixmap(maptmp);
+    this->resize(2*label->width(),label->height());
+}
 
 void MainWindow::floutage(){
+    nb_label = 2;
     cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
     imageCV = tmp;
     cv::blur(imageCV,imageCV,cv::Size(5,5));
@@ -129,14 +143,11 @@ void MainWindow::floutage(){
     labeltmp->resize(image.size());
     labeltmp->show();
     labeltmp->setPixmap(maptmp);
-    if(resizebool){
-        this->resize(2*label->width()+10,label->height()+30);
-        resizebool = false;
-    }
+    this->resize(2*label->width(),label->height());
 }
 
 void MainWindow::separation(){
-    label->clear();
+    nb_label = 2;
     this->resize(image.width(),image.height()+30);
     QImage image1(w/2,h,QImage::Format_RGB32);
     QImage image2(w/2,h,QImage::Format_RGB32);
@@ -149,14 +160,13 @@ void MainWindow::separation(){
     imageG = image1;
     imageD = image2;
     map=QPixmap::fromImage(imageG);
-    labelG->move(0,30);
-    labelG->setPixmap(map);
-    labelG->show();
+    label->setPixmap(map);
+    label->show();
     map=QPixmap::fromImage(imageD);
-    labelD->move(w/2+10,30);
-    labelD->setPixmap(map);
-    labelD->show();
-    this->resize(image.width()+10,image.height());
+    labeltmp->move(w/2+10,30);
+    labeltmp->setPixmap(map);
+    labeltmp->show();
+    this->resize(image.width(),image.height());
 }
 
 void MainWindow::quit()
@@ -165,15 +175,25 @@ void MainWindow::quit()
 }
 
 void MainWindow::resizeEvent(QResizeEvent * event){
-
     QSize tailleActuelle = event->size();
     w = tailleActuelle.width();
     h = tailleActuelle.height();
-
-    label->resize(w,h);
-    labelG->resize(w/2,h);
-    labelD->resize(w/2,h);
-
-    label->show();
+    switch (nb_label) {
+        case 0:
+            break;
+        case 1:
+            label->resize(w,h);
+            label->show();
+            break;
+        case 2:
+            label->resize(w/2,h);
+            labeltmp->resize(w/2,h);
+            label->show();
+            labeltmp->show();
+            break;
+        default:
+            exit(1);
+            break;
+    }
 }
 

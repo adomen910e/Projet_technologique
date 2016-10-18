@@ -29,6 +29,7 @@ public slots:
     void separation();
     void floutage();
     void sobelSlot();
+    void cannySlot();
     void resizeEvent(QResizeEvent * event);
     void sauverRectangle (QRect *rect, QString s);
 
@@ -37,17 +38,15 @@ public:
     QWidget *widge;
 
 private:
-    bool resizebool = true;
     QGridLayout *grid;
     QMenu *aPropos;
     QMenu *fichier;
     QMenu *traitement;
     QLabel *label;
     QLabel *labeltmp;
-    QLabel *labelG;
-    QLabel *labelD;
     QAction *flouterImage;
     QAction *sobel;
+    QAction *canny;
     QAction *aProposAction;
     QAction *ouvrir;
     QAction *quitter;
@@ -66,7 +65,7 @@ private:
     int yrec;
     int h;
     int w;
-
+    int nb_label;
 };
 
 #endif // MAINWINDOW_H
