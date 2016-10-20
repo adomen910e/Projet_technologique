@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void afficherMat(cv::Mat mat);
+    void afficherMat(cv::Mat mat,QImage::Format format);
 
 
 
@@ -34,11 +34,9 @@ public slots:
     void sauverRectangle (QRect *rect, QString s);
 
 public:
-
     QWidget *widge;
 
 private:
-    QGridLayout *grid;
     QMenu *aPropos;
     QMenu *fichier;
     QMenu *traitement;

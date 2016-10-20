@@ -14,6 +14,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    nb_label = 0;
     label = new QLabel(this);
     labeltmp = new QLabel(this);
     label->move(0,30);
@@ -25,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     fichier = menuBar()->addMenu(tr("&Fichier"));
     flouterImage=new QAction(tr("&Flouter l'image"),this);
     sobel=new QAction(tr("&Effet Sobel"),this);
+    canny=new QAction(tr("&Effet Canny"),this);
     aPropos->addAction(aProposAction);
     fichier->addAction(ouvrir);
     fichier->addAction(quitter);
@@ -42,6 +44,7 @@ MainWindow::~MainWindow()
     fichier=NULL;
     label=NULL;
     aProposAction=NULL;
+    canny = NULL;
     ouvrir=NULL;
     quitter=NULL;
     xrec = 0;
@@ -91,8 +94,8 @@ void MainWindow::openFile()
     label->show();
 }
 
-void MainWindow::afficherMat(cv::Mat mat){
-    imagetmp = QImage(mat.data, mat.cols, mat.rows, mat.step, image.Format_Indexed8);
+void MainWindow::afficherMat(cv::Mat mat,QImage::Format format){
+    imagetmp = QImage(mat.data, mat.cols, mat.rows, mat.step,format);
     maptmp = QPixmap::fromImage(imagetmp);
     labeltmp->resize(image.size());
     labeltmp->show();
@@ -113,7 +116,7 @@ void MainWindow::sobelSlot(){
     cv::convertScaleAbs(grad_x,abs_grad_x);
     cv::convertScaleAbs(grad_y,abs_grad_y);
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, imageCV );
-    afficherMat(imageCV);
+    afficherMat(imageCV,image.Format_Indexed8);
 }
 void MainWindow::cannySlot(){
     nb_label = 2;
@@ -125,25 +128,16 @@ void MainWindow::cannySlot(){
     cv::cvtColor(imageCV, imgGrayscale, CV_BGR2GRAY);
     cv::GaussianBlur(imgGrayscale,imgBlurred,cv::Size(5, 5),1.5);
     cv::Canny(imgBlurred,imgCanny,100,200);
-    imagetmp = QImage(imgCanny.data, imgCanny.cols, imgCanny.rows, imgCanny.step, image.format());
-    maptmp = QPixmap::fromImage(imagetmp);
-    labeltmp->resize(image.size());
-    labeltmp->show();
-    labeltmp->setPixmap(maptmp);
-    this->resize(2*label->width(),label->height());
+    afficherMat(imgCanny,image.Format_Indexed8);
 }
 
 void MainWindow::floutage(){
     nb_label = 2;
     cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
+    cv::Mat imgBlurred;
     imageCV = tmp;
-    cv::blur(imageCV,imageCV,cv::Size(5,5));
-    imagetmp = QImage(imageCV.data, imageCV.cols, imageCV.rows, imageCV.step, image.format());
-    maptmp = QPixmap::fromImage(imagetmp);
-    labeltmp->resize(image.size());
-    labeltmp->show();
-    labeltmp->setPixmap(maptmp);
-    this->resize(2*label->width(),label->height());
+    cv::blur(imageCV,imgBlurred,cv::Size(5,5));
+    afficherMat(imgBlurred,image.format());
 }
 
 void MainWindow::separation(){
