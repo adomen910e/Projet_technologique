@@ -64,6 +64,7 @@ private:
     int h;
     int w;
     int nb_label;
+    bool init = true;
 };
 
 #endif // MAINWINDOW_H

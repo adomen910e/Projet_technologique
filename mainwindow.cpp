@@ -81,17 +81,21 @@ void MainWindow::openFile()
     label->setPixmap(map);
     fichier->addAction(separerImage);
     QObject::connect(separerImage,SIGNAL(triggered()),this,SLOT(separation()));
-    traitement = menuBar()->addMenu(tr("&Traitement de l'image"));
-    traitement->addAction(flouterImage);
-    traitement->addAction(sobel);
-    traitement->addAction(canny);
-    QObject::connect(flouterImage,SIGNAL(triggered()),this,SLOT(floutage()));
-    QObject::connect(sobel,SIGNAL(triggered()),this,SLOT(sobelSlot()));
-    QObject::connect(canny,SIGNAL(triggered()),this,SLOT(cannySlot()));
+    if(init){
+        traitement = menuBar()->addMenu(tr("&Traitement de l'image"));
+        traitement->addAction(flouterImage);
+        traitement->addAction(sobel);
+        traitement->addAction(canny);
+        QObject::connect(flouterImage,SIGNAL(triggered()),this,SLOT(floutage()));
+        QObject::connect(sobel,SIGNAL(triggered()),this,SLOT(sobelSlot()));
+        QObject::connect(canny,SIGNAL(triggered()),this,SLOT(cannySlot()));
+        init = false;
+    }
     label->resize(image.size());
     this->resize(image.width(),image.height()+30);
     labeltmp->move(10+label->width(),30);
     label->show();
+    //image.convertToFormat(image.Format_RGB32);
 }
 
 void MainWindow::afficherMat(cv::Mat mat,QImage::Format format){
@@ -137,7 +141,7 @@ void MainWindow::floutage(){
     cv::Mat imgBlurred;
     imageCV = tmp;
     cv::blur(imageCV,imgBlurred,cv::Size(5,5));
-    afficherMat(imgBlurred,image.format());
+    afficherMat(imgBlurred,image.Format_ARGB32);
 }
 
 void MainWindow::separation(){
