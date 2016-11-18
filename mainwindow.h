@@ -19,6 +19,10 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void afficherMat(cv::Mat mat,QImage::Format format);
+    void carteDisparite(cv::Mat matG,cv::Mat matD);
+    cv::Mat extractionFeatures(cv::Mat mat);
+    cv::Mat correspondanceFeatures(cv::Mat matG,cv::Mat matD);
+    cv::Mat estimationTransformation(cv::Mat mat);
 
 
 
@@ -32,6 +36,7 @@ public slots:
     void cannySlot();
     void resizeEvent(QResizeEvent * event);
     void sauverRectangle (QRect *rect, QString s);
+    void carteProfondeur();
 
 public:
     QWidget *widge;
@@ -49,6 +54,7 @@ private:
     QAction *ouvrir;
     QAction *quitter;
     QAction *separerImage;
+    QAction *carteProfondeurAction;
     QImage image;
     QImage imageG;
     QImage imageD;

@@ -52,6 +52,10 @@ MainWindow::~MainWindow()
     nb_label = 0;
 }
 
+void MainWindow::carteProfondeur(){
+
+}
+
 void MainWindow::sauverRectangle (QRect *rect, QString s)
 {
      QPixmap qp = *label->pixmap();
