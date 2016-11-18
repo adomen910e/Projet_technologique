@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     nb_label = 0;
+    traitement = NULL;
     label = new QLabel(this);
     labeltmp = new QLabel(this);
     label->move(0,30);
@@ -27,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     flouterImage=new QAction(tr("&Flouter l'image"),this);
     sobel=new QAction(tr("&Effet Sobel"),this);
     canny=new QAction(tr("&Effet Canny"),this);
+    carteProfondeurAction=new QAction(tr("&Carte de Profondeur"),this);
     aPropos->addAction(aProposAction);
     fichier->addAction(ouvrir);
     fichier->addAction(quitter);
@@ -50,6 +52,7 @@ MainWindow::~MainWindow()
     xrec = 0;
     yrec = 0;
     nb_label = 0;
+    traitement = NULL;
 }
 
 void MainWindow::carteProfondeur(){
@@ -75,6 +78,9 @@ void MainWindow::afficherMessage()
 
 void MainWindow::openFile()
 {
+    if(traitement!=NULL){
+        traitement->removeAction(carteProfondeurAction);
+    }
     nb_label = 1;
     labeltmp->clear();
     QString fileName = QFileDialog::getOpenFileName(this,tr("Ouvrir une image"),"/",tr("Image Files (*.png *.jpg *.bmp)"));
@@ -99,7 +105,6 @@ void MainWindow::openFile()
     this->resize(image.width(),image.height()+30);
     labeltmp->move(10+label->width(),30);
     label->show();
-    //image.convertToFormat(image.Format_RGB32);
 }
 
 void MainWindow::afficherMat(cv::Mat mat,QImage::Format format){
@@ -149,6 +154,8 @@ void MainWindow::floutage(){
 }
 
 void MainWindow::separation(){
+    traitement->addAction(carteProfondeurAction);
+    QObject::connect(carteProfondeurAction,SIGNAL(triggered()),this,SLOT(carteProfondeur()));
     nb_label = 2;
     this->resize(image.width(),image.height()+30);
     QImage image1(w/2,h,QImage::Format_RGB32);
