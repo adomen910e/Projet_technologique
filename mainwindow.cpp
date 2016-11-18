@@ -10,6 +10,12 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
+#include "opencv2/core/core.hpp"
+#include "opencv2/features2d/features2d.hpp"
+//#include "opencv2/nonfree/features2d.hpp"
+#include "opencv2/highgui/highgui.hpp"
+//#include "opencv2/nonfree/nonfree.hpp">
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -55,6 +61,12 @@ MainWindow::~MainWindow()
 void MainWindow::carteProfondeur(){
 
 }
+
+cv::Mat MainWindow::extractionFeatures(cv::Mat mat){
+    int minHessian = 400;
+    //cv::SurfFeatureDetector detector( minHessian );
+}
+
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
 {
