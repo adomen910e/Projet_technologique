@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "widget.h"
-
 #include <QtGui>
 #include <QFileDialog>
 #include <iostream>
@@ -10,12 +9,12 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
-#include "opencv2/core/core.hpp"
-#include "opencv2/features2d/features2d.hpp"
-//#include "opencv2/nonfree/features2d.hpp"
-#include "opencv2/highgui/highgui.hpp"
-//#include "opencv2/nonfree/nonfree.hpp">
-
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "opencv2/calib3d/calib3d.hpp"
+#include <opencv2/imgproc/imgproc.hpp>
+#include "opencv2/contrib/contrib.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -62,14 +61,48 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::carteProfondeur(){
-
+    cv::Mat matG(imageG.height(),imageG.width(),CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
+    cv::Mat matD(imageD.height(),imageD.width(),CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
+    MainWindow::blockMatching(matG,matD);
 }
 
-cv::Mat MainWindow::extractionFeatures(cv::Mat mat){
-    int minHessian = 400;
-    //cv::SurfFeatureDetector detector( minHessian );
+void MainWindow::extractionFeatures(cv::Mat mat){
+    //block matching
 }
-
+void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
+    cv::Mat g1,g2,disp,disp8;
+    cvtColor(img1, g1, CV_BGR2GRAY);
+    cvtColor(img2, g2, CV_BGR2GRAY);
+    cv::StereoBM sbm;
+    sbm.state->SADWindowSize = 9;
+    sbm.state->numberOfDisparities = 112;
+    sbm.state->preFilterSize = 5;
+    sbm.state->preFilterCap = 61;
+    sbm.state->minDisparity = -39;
+    sbm.state->textureThreshold = 507;
+    sbm.state->uniquenessRatio = 0;
+    sbm.state->speckleWindowSize = 0;
+    sbm.state->speckleRange = 8;
+    sbm.state->disp12MaxDiff = 1;
+    sbm(g1, g2, disp);
+    normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
+    imshow("disp", disp8);
+    cv::StereoSGBM sgbm;
+    sgbm.SADWindowSize = 5;
+    sgbm.numberOfDisparities = 192;
+    sgbm.preFilterCap = 4;
+    sgbm.minDisparity = -64;
+    sgbm.uniquenessRatio = 1;
+    sgbm.speckleWindowSize = 150;
+    sgbm.speckleRange = 2;
+    sgbm.disp12MaxDiff = 10;
+    sgbm.fullDP = false;
+    sgbm.P1 = 600;
+    sgbm.P2 = 2400;
+    sgbm(g1, g2, disp);
+    normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
+    imshow("disp 2", disp8);
+}
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
 {

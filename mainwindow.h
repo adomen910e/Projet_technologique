@@ -10,6 +10,7 @@
 #include <QString>
 #include "widget.h"
 #include <opencv2/opencv.hpp>
+#include <opencv2/opencv_modules.hpp>
 
 class MainWindow : public QMainWindow
 {
@@ -20,9 +21,10 @@ public:
     ~MainWindow();
     void afficherMat(cv::Mat mat,QImage::Format format);
     void carteDisparite(cv::Mat matG,cv::Mat matD);
-    cv::Mat extractionFeatures(cv::Mat mat);
+    void extractionFeatures(cv::Mat mat);
     cv::Mat correspondanceFeatures(cv::Mat matG,cv::Mat matD);
     cv::Mat estimationTransformation(cv::Mat mat);
+    void blockMatching(cv::Mat img1,cv::Mat img2);
 
 
 
