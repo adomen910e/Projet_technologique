@@ -66,9 +66,39 @@ void MainWindow::carteProfondeur(){
     MainWindow::blockMatching(matG,matD);
 }
 
-void MainWindow::extractionFeatures(cv::Mat mat){
-    //block matching
+void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
+
+    if(imgD.empty() || imgG.empty())
+    {
+        printf("Can't read one of the images\n");
+    }
+
+    // detecting keypoints
+    cv::SurfFeatureDetector detector(400);
+    cv::vector<cv::KeyPoint> keypoints1, keypoints2;
+    detector.detect(imgD, keypoints1);
+    detector.detect(imgG, keypoints2);
+
+    // computing descriptors
+    cv::SurfDescriptorExtractor extractor;
+    cv::Mat descriptors1, descriptors2;
+    extractor.compute(imgD, keypoints1, descriptors1);
+    extractor.compute(imgG, keypoints2, descriptors2);
+
+    // matching descriptors
+    cv::BruteForceMatcher<cv::L2<float> > matcher;
+    cv::vector<cv::DMatch> matches;
+    matcher.match(descriptors1, descriptors2, matches);
+
+    // drawing the results
+    cv::namedWindow("matches", 1);
+    cv::Mat img_matches;
+    cv::drawMatches(imgD, keypoints1, imgG, keypoints2, matches, img_matches);
+    cv::imshow("matches", img_matches);
+    cv::waitKey(0);
+
 }
+
 void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     cv::Mat g1,g2,disp,disp8;
     cvtColor(img1, g1, CV_BGR2GRAY);

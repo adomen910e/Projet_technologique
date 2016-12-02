@@ -21,7 +21,7 @@ public:
     ~MainWindow();
     void afficherMat(cv::Mat mat,QImage::Format format);
     void carteDisparite(cv::Mat matG,cv::Mat matD);
-    void extractionFeatures(cv::Mat mat);
+    void extractionFeatures(cv::Mat imgD, cv::Mat imageG);
     cv::Mat correspondanceFeatures(cv::Mat matG,cv::Mat matD);
     cv::Mat estimationTransformation(cv::Mat mat);
     void blockMatching(cv::Mat img1,cv::Mat img2);
