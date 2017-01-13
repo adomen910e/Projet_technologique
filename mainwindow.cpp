@@ -15,6 +15,7 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/contrib/contrib.hpp"
+#include <opencv2/opencv.hpp>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -63,6 +64,7 @@ MainWindow::~MainWindow()
 void MainWindow::carteProfondeur(){
     cv::Mat matG(imageG.height(),imageG.width(),CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
     cv::Mat matD(imageD.height(),imageD.width(),CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
+    MainWindow::extractionFeatures(matG,matD);
     MainWindow::blockMatching(matG,matD);
 }
 
@@ -74,7 +76,7 @@ void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
     }
 
     // detecting keypoints
-    cv::SurfFeatureDetector detector(400);
+    /*cv::SurfFeatureDetector detector(400);
     cv::vector<cv::KeyPoint> keypoints1, keypoints2;
     detector.detect(imgD, keypoints1);
     detector.detect(imgG, keypoints2);
@@ -95,11 +97,32 @@ void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
     cv::Mat img_matches;
     cv::drawMatches(imgD, keypoints1, imgG, keypoints2, matches, img_matches);
     cv::imshow("matches", img_matches);
-    cv::waitKey(0);
+    cv::waitKey(0);*/
+    std::vector<cv::KeyPoint> kp;
+    // Default parameters of ORB
+    int nfeatures=500;
+    float scaleFactor=1.2f;
+    int nlevels=8;
+    int edgeThreshold=15; // Changed default (31);
+    int firstLevel=0;
+    int WTA_K=2;
+    int scoreType=cv::ORB::HARRIS_SCORE;
+    int patchSize=31;
+    int fastThreshold=20;
 
+    cv::Ptr<cv::ORB> detector = cv::ORB::create(nfeatures,scaleFactor,nlevels,edgeThreshold,firstLevel,WTA_K,scoreType,patchSize,fastThreshold );
+
+    detector->detect(imgG, kp);
+    std::cout << "Found " << kp.size() << " Keypoints " << std::endl;
+
+    cv::Mat out;
+    drawKeypoints(imgG, kp, out, cv::Scalar::all(255));
+
+    cv::imshow("Kpts", out);
 }
 
 void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
+    //ajouter référence
     cv::Mat g1,g2,disp,disp8;
     cvtColor(img1, g1, CV_BGR2GRAY);
     cvtColor(img2, g2, CV_BGR2GRAY);
@@ -118,14 +141,14 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
     imshow("disp", disp8);
     cv::StereoSGBM sgbm;
-    sgbm.SADWindowSize = 5;
+    sgbm.SADWindowSize = 5;//5
     sgbm.numberOfDisparities = 192;
     sgbm.preFilterCap = 4;
     sgbm.minDisparity = -64;
     sgbm.uniquenessRatio = 1;
     sgbm.speckleWindowSize = 150;
     sgbm.speckleRange = 2;
-    sgbm.disp12MaxDiff = 10;
+    sgbm.disp12MaxDiff = 1000;//10
     sgbm.fullDP = false;
     sgbm.P1 = 600;
     sgbm.P2 = 2400;
@@ -136,11 +159,11 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
 {
-     QPixmap qp = *label->pixmap();
+    QPixmap qp = *label->pixmap();
 
-     QPixmap tmp = qp.copy(*rect);
-     tmp.save(s);
- }
+    QPixmap tmp = qp.copy(*rect);
+    tmp.save(s);
+}
 
 
 
@@ -263,21 +286,21 @@ void MainWindow::resizeEvent(QResizeEvent * event){
     w = tailleActuelle.width();
     h = tailleActuelle.height();
     switch (nb_label) {
-        case 0:
-            break;
-        case 1:
-            label->resize(w,h);
-            label->show();
-            break;
-        case 2:
-            label->resize(w/2,h);
-            labeltmp->resize(w/2,h);
-            label->show();
-            labeltmp->show();
-            break;
-        default:
-            exit(1);
-            break;
+    case 0:
+        break;
+    case 1:
+        label->resize(w,h);
+        label->show();
+        break;
+    case 2:
+        label->resize(w/2,h);
+        labeltmp->resize(w/2,h);
+        label->show();
+        labeltmp->show();
+        break;
+    default:
+        exit(1);
+        break;
     }
 }
 
