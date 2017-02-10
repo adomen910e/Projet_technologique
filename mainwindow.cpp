@@ -64,7 +64,6 @@ MainWindow::~MainWindow()
 void MainWindow::carteProfondeur(){
     cv::Mat matG(imageG.height(),imageG.width(),CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
     cv::Mat matD(imageD.height(),imageD.width(),CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
-    MainWindow::blockMatching(matG,matD);
     MainWindow::extractionFeatures(matG,matD);
     MainWindow::blockMatching(matG,matD);
 }
@@ -91,17 +90,45 @@ void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
     cv::Mat img_matches;
     cv::drawMatches(imgD, keypoints1, imgG, keypoints2, matches, img_matches);
     cv::imshow("matches", img_matches);
-    cv::imshow("Jean",descriptors1);
-    cv::imshow("rené",descriptors2);
     //code par astronaut 2016-07-13T01:00:29-07:00 voir https://www.imagemagick.org/discourse-server/viewtopic.php?t=30064
 }
 
 void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     //ajouter référence
-    cv::Mat g1,g2,disp,disp8;
+    cv::Mat g1,g2,disp,dispo,disp8,disp8o;
     cvtColor(img1, g1, CV_BGR2GRAY);
     cvtColor(img2, g2, CV_BGR2GRAY);
     cv::StereoBM sbm;
+    sbm.state->SADWindowSize = 9;
+    sbm.state->numberOfDisparities = 112;
+    sbm.state->preFilterSize = 5;
+    sbm.state->preFilterCap = 61;
+    sbm.state->minDisparity = -39;
+    sbm.state->textureThreshold = 507;
+    sbm.state->uniquenessRatio = 0;
+    sbm.state->speckleWindowSize = 0;
+    sbm.state->speckleRange = 8;
+    sbm.state->disp12MaxDiff = 1;
+    sbm(g1, g2, dispo);
+    normalize(dispo, disp8o, 0, 255, CV_MINMAX, CV_8U);
+    imshow("dispo", disp8o);
+    cv::StereoSGBM sgbm;
+    sgbm.SADWindowSize = 5;
+    sgbm.numberOfDisparities = 192;
+    sgbm.preFilterCap = 4;
+    sgbm.minDisparity = -64;
+    sgbm.uniquenessRatio = 1;
+    sgbm.speckleWindowSize = 150;
+    sgbm.speckleRange = 2;
+    sgbm.disp12MaxDiff = 10;
+    sgbm.fullDP = false;
+    sgbm.P1 = 600;
+    sgbm.P2 = 2400;
+    sgbm(g1, g2, disp);
+    normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
+    imshow("disp", disp8);
+
+    /*cv::StereoBM sbm;
     sbm.state->SADWindowSize = 9;
     sbm.state->numberOfDisparities = 112;
     sbm.state->preFilterSize = 5;
@@ -129,7 +156,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sgbm.P2 = 2400;
     sgbm(g1, g2, disp);
     normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
-    imshow("disp 2", disp8);
+    imshow("disp 2", disp8);*/
 }
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
