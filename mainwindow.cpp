@@ -90,12 +90,9 @@ void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
     cv::namedWindow("matches", CV_WINDOW_AUTOSIZE);
     cv::Mat img_matches;
     cv::drawMatches(imgD, keypoints1, imgG, keypoints2, matches, img_matches);
-    cv::drawKeypoints();
+    //cv::drawKeypoints();
     cv::imshow("matches", img_matches);
-<<<<<<< HEAD
 
-=======
->>>>>>> ff42b75457b438413b3c2ed9cb608ed9236ff03e
     //code par astronaut 2016-07-13T01:00:29-07:00 voir https://www.imagemagick.org/discourse-server/viewtopic.php?t=30064
 }
 
@@ -115,7 +112,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sbm.state->speckleWindowSize = 0;
     sbm.state->speckleRange = 8;
     sbm.state->disp12MaxDiff = 1;
-<<<<<<< HEAD
+
     /*
     sbm.state->SADWindowSize = 9;
     sbm.state->numberOfDisparities = 112;
@@ -127,7 +124,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sbm.state->speckleWindowSize = 0;
     sbm.state->speckleRange = 20;
     sbm.state->disp12MaxDiff = 64;*/
-=======
+
     sbm(g1, g2, dispo);
     normalize(dispo, disp8o, 0, 255, CV_MINMAX, CV_8U);
     imshow("dispo", disp8o);
@@ -158,11 +155,12 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sbm.state->speckleWindowSize = 0;
     sbm.state->speckleRange = 8;
     sbm.state->disp12MaxDiff = 1;
->>>>>>> ff42b75457b438413b3c2ed9cb608ed9236ff03e
+
     sbm(g1, g2, disp);
     normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
     imshow("disp", disp8);
-    /*cv::StereoSGBM sgbm;
+
+    cv::StereoSGBM sgbm;
     sgbm.preFilterCap = 61;//25
     sgbm.SADWindowSize = 7;//14
     sgbm.numberOfDisparities = 64; //64
