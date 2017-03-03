@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
     flouterImage=new QAction(tr("&Flouter l'image"),this);
     sobel=new QAction(tr("&Effet Sobel"),this);
     canny=new QAction(tr("&Effet Canny"),this);
-    carteProfondeurAction=new QAction(tr("&Carte de Disparité"),this);
+    carteProfondeurAction=new QAction(tr("&Carte de Disparite"),this);
     aPropos->addAction(aProposAction);
     fichier->addAction(ouvrir);
     fichier->addAction(quitter);
@@ -62,11 +62,10 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::carteProfondeur(){
-    qDebug("%d",imageD.width());
     cv::Mat matG(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
     cv::Mat matD(imageD.height(),imageD.width(),CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
     MainWindow::extractionFeatures(matG,matD);
-    //MainWindow::blockMatching(matG,matD);
+    MainWindow::blockMatching(matD,matG);
 }
 
 void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
@@ -101,6 +100,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     cv::Mat g1,g2,disp,dispo,disp8,disp8o;
     cvtColor(img1, g1, CV_BGR2GRAY);
     cvtColor(img2, g2, CV_BGR2GRAY);
+
     cv::StereoBM sbm;
     sbm.state->SADWindowSize = 9;
     sbm.state->numberOfDisparities = 160;
@@ -128,6 +128,8 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sbm(g1, g2, dispo);
     normalize(dispo, disp8o, 0, 255, CV_MINMAX, CV_8U);
     imshow("dispo", disp8o);
+
+
     cv::StereoSGBM sgbm;
     sgbm.SADWindowSize = 5;
     sgbm.numberOfDisparities = 192;
