@@ -62,10 +62,10 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::carteProfondeur(){
-    cv::Mat matG(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
-    cv::Mat matD(imageD.height(),imageD.width(),CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
+    cv::Mat matG(imageG.height(),imageG.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
+    cv::Mat matD(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
     MainWindow::extractionFeatures(matG,matD);
-    MainWindow::blockMatching(matD,matG);
+    MainWindow::blockMatching(matG,matD);
 }
 
 void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
@@ -86,11 +86,10 @@ void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
     matcher.match(descriptors1, descriptors2, matches);
 
     // drawing the results
-    cv::namedWindow("matches", CV_WINDOW_AUTOSIZE);
-    cv::Mat img_matches;
-    cv::drawMatches(imgD, keypoints1, imgG, keypoints2, matches, img_matches);
-    //cv::drawKeypoints();
-    cv::imshow("matches", img_matches);
+    //cv::namedWindow("matches", CV_WINDOW_AUTOSIZE);
+    //cv::Mat img_matches;
+    //cv::drawMatches(imgD, keypoints1, imgG, keypoints2, matches, img_matches);
+    //cv::imshow("matches", img_matches);
 
     //code par astronaut 2016-07-13T01:00:29-07:00 voir https://www.imagemagick.org/discourse-server/viewtopic.php?t=30064
 }
@@ -101,36 +100,38 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     cvtColor(img1, g1, CV_BGR2GRAY);
     cvtColor(img2, g2, CV_BGR2GRAY);
 
+
     cv::StereoBM sbm;
-    sbm.state->SADWindowSize = 9;
-    sbm.state->numberOfDisparities = 160;
-    sbm.state->preFilterSize = 5;
-    sbm.state->preFilterCap = 61;
-    sbm.state->minDisparity = -39;
-    sbm.state->textureThreshold = 507;
-    sbm.state->uniquenessRatio = 0;
-    sbm.state->speckleWindowSize = 0;
-    sbm.state->speckleRange = 8;
-    sbm.state->disp12MaxDiff = 1;
-
-    /*
-    sbm.state->SADWindowSize = 9;
-    sbm.state->numberOfDisparities = 112;
-    sbm.state->preFilterSize = 5;
-    sbm.state->preFilterCap = 1;
-    sbm.state->minDisparity = 0;
-    sbm.state->textureThreshold = 5;
-    sbm.state->uniquenessRatio = 5;
-    sbm.state->speckleWindowSize = 0;
-    sbm.state->speckleRange = 20;
-    sbm.state->disp12MaxDiff = 64;*/
-
-    sbm(g1, g2, dispo);
+        sbm.state->SADWindowSize = 9;
+        sbm.state->numberOfDisparities = 112;
+        sbm.state->preFilterSize = 5;
+        sbm.state->preFilterCap = 1;
+        sbm.state->minDisparity = 0;
+        sbm.state->textureThreshold = 5;
+        sbm.state->uniquenessRatio = 5;
+        sbm.state->speckleWindowSize = 0;
+        sbm.state->speckleRange = 20;
+        sbm.state->disp12MaxDiff = 64;
+    sbm(g2, g1, dispo);
     normalize(dispo, disp8o, 0, 255, CV_MINMAX, CV_8U);
     imshow("dispo", disp8o);
 
 
-    cv::StereoSGBM sgbm;
+/*
+    Ptr<StereoSGBM> sgbm = StereoSGBM::create(0,    //int minDisparity
+                                        96,     //int numDisparities
+                                        5,      //int SADWindowSize
+                                        600,    //int P1 = 0
+                                        2400,   //int P2 = 0
+                                        20,     //int disp12MaxDiff = 0
+                                        16,     //int preFilterCap = 0
+                                        1,      //int uniquenessRatio = 0
+                                        100,    //int speckleWindowSize = 0
+                                        20,     //int speckleRange = 0
+                                        true);  //bool fullDP = false*/
+
+
+   /* cv::StereoSGBM sgbm;
     sgbm.SADWindowSize = 5;
     sgbm.numberOfDisparities = 192;
     sgbm.preFilterCap = 4;
@@ -144,39 +145,13 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sgbm.P2 = 2400;
     sgbm(g1, g2, disp);
     normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
-    imshow("disp", disp8);
+    imshow("disp", disp8);*/
+    //afficherMat(disp8,image.Format_Indexed8);
 
-    /*cv::StereoBM sbm;
-    sbm.state->SADWindowSize = 9;
-    sbm.state->numberOfDisparities = 112;
-    sbm.state->preFilterSize = 5;
-    sbm.state->preFilterCap = 61;
-    sbm.state->minDisparity = -39;
-    sbm.state->textureThreshold = 507;
-    sbm.state->uniquenessRatio = 0;
-    sbm.state->speckleWindowSize = 0;
-    sbm.state->speckleRange = 8;
-    sbm.state->disp12MaxDiff = 1;
+    //pour enregistrer l'image obtenue
+    //maptmp.save("/net/cremi/adomen910e/Bureau/STEREO/STEREO/test.png");
 
-    sbm(g1, g2, disp);
-    normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
-    imshow("disp", disp8);
 
-    cv::StereoSGBM sgbm;
-    sgbm.preFilterCap = 61;//25
-    sgbm.SADWindowSize = 7;//14
-    sgbm.numberOfDisparities = 64; //64
-    sgbm.minDisparity = 15;
-    sgbm.uniquenessRatio = 10;
-    sgbm.speckleWindowSize = 100;
-    sgbm.speckleRange = 2;
-    sgbm.disp12MaxDiff = 1;//10
-    sgbm.fullDP = false;
-    //sgbm.P1 = 600;
-    //sgbm.P2 = 600;
-    sgbm(g1, g2, disp);
-    normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
-    imshow("disp 2", disp8);*/
 }
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
@@ -205,6 +180,8 @@ void MainWindow::openFile()
     labeltmp->clear();
     QString fileName = QFileDialog::getOpenFileName(this,tr("Ouvrir une image"),"/",tr("Image Files (*.png *.jpg *.bmp)"));
     QImageReader *reader = new QImageReader();
+    //pour aller chercher une image a un endroit donné
+    //reader->setFileName("/net/cremi/adomen910e/Bureau/STEREO/STEREO/9306e7531d18d355992639855234198f.png");
     reader->setFileName(fileName);
     image =reader->read();
     map=QPixmap::fromImage(image);
@@ -326,4 +303,24 @@ void MainWindow::resizeEvent(QResizeEvent * event){
         break;
     }
 }
+
+bool MainWindow::enregistrer_fichier_m (const QString &fileName){
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("MetaAgreg"),tr("Ne peut pas enregistrer un fichier!").arg(fileName).arg(file.errorString()));
+        return false;
+    }
+    return true;
+}
+
+void MainWindow:: enregistrer_m(){
+    QString dir=QFileDialog::getExistingDirectory(this, tr("Choisir ou créer votre repertoire de travail!"), "/net/cremi/adomen910e/Bureau/STEREO/STEREO/test.png", QFileDialog::ShowDirsOnly);
+    QString fileName= QFileDialog::getSaveFileName(this, tr("Enregistrer votre fichier dans votre repertoire de travaiol!"), dir, tr("*.png;; *.xpm;; *.jpg;;*.txt;; *.doc;;*.xml;;*.bin"));
+    if (fileName.isEmpty())
+        return ;
+    enregistrer_fichier_m(fileName);
+}
+
+
+
 

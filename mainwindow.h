@@ -39,6 +39,8 @@ public slots:
     void resizeEvent(QResizeEvent * event);
     void sauverRectangle (QRect *rect, QString s);
     void carteProfondeur();
+    bool enregistrer_fichier_m(const QString &fileName);
+    void enregistrer_m();
 
 public:
     QWidget *widge;
