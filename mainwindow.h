@@ -41,11 +41,13 @@ public slots:
     void carteProfondeur();
     bool enregistrer_fichier_m(const QString &fileName);
     void enregistrer_m();
+    void print();
 
 public:
     QWidget *widge;
 
 private:
+    QTimer *temps;
     QMenu *aPropos;
     QMenu *fichier;
     QMenu *traitement;

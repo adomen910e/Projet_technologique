@@ -158,8 +158,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
 
     //pour enregistrer l'image obtenue
     maptmp.save("/net/cremi/mvalleron/Bureau/test.png");
-    int a = 0;
-    a.save("/net/cremi/mvalleron/Bureau/comunication.txt");
+    //a.save("/net/cremi/mvalleron/Bureau/comunication.txt");
 
 
 }
