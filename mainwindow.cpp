@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
+#include <qvector.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -53,6 +54,25 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(aProposAction,SIGNAL(triggered()),this,SLOT(afficherMessage()));
     QObject::connect(ouvrir,SIGNAL(triggered()),this,SLOT(openFile()));
     QObject::connect(quitter,SIGNAL(triggered()),this,SLOT(quit()));
+
+
+    //Test sur la difference d'image
+    QString fileName1 ="/net/cremi/adomen910e/Bureau/New Render Texture (copie 1).png" ;
+    QImageReader *reader1 = new QImageReader();
+    reader1->setFileName(fileName1);
+    QImage image1 =reader1->read();
+    cv::Mat tmp1(image1.height(),image1.width(),CV_8UC4,(uchar*)image1.bits(),image1.bytesPerLine());
+
+    QString fileName2 ="/net/cremi/adomen910e/Bureau/New Render Texture (copie 2).png" ;
+    QImageReader *reader2 = new QImageReader();
+    reader2->setFileName(fileName2);
+    QImage image2 =reader2->read();
+    cv::Mat tmp2(image2.height(),image2.width(),CV_8UC4,(uchar*)image2.bits(),image2.bytesPerLine());
+
+    tabImage[0]= tmp1;
+    tabImage[1]= tmp2;
+    differenceImage();
+
 
 }
 
@@ -181,9 +201,9 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
 
 
     //Enregistrement carte de profondeur
-    nbImage=nbImage%2;
-    tabImage.insert(nbImage,depthMap);
-    nbImage++;
+    //nbImage=nbImage%2;
+    //tabImage.insert(nbImage,depthMap);
+    //nbImage++;
 
     if (!firstTime){
         differenceImage();
@@ -198,7 +218,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
 }
 
 void MainWindow::differenceImage(){
-    cv::absdiff(tabImage.value(0), tabImage.value(1) , diffImage);
+    cv::absdiff(tabImage[0], tabImage[1] , diffImage);
 
     cv::Mat foregroundMask = cv::Mat::zeros(diffImage.rows, diffImage.cols, CV_8UC1);
 

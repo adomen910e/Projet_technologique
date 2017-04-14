@@ -7,7 +7,9 @@
 #include <QGridLayout>
 #include <QPainter>
 #include <QRect>
+#include <QVector>
 #include <QString>
+#include <qvector.h>
 #include "widget.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/opencv_modules.hpp>
@@ -73,7 +75,7 @@ private:
     cv::Mat imageCV;
     cv::Mat diffImage;
 
-    QVector<cv::Mat> tabImage;
+    cv::Mat tabImage[2];
 
     int nbImage;
     int xrec;
