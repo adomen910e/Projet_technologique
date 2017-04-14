@@ -38,10 +38,10 @@ public slots:
     void cannySlot();
     void resizeEvent(QResizeEvent * event);
     void sauverRectangle (QRect *rect, QString s);
-    void carteProfondeur();
+    void carteDisparite();
     bool enregistrer_fichier_m(const QString &fileName);
     void enregistrer_m();
-    void print();
+   // void print();
 
 public:
     QWidget *widge;

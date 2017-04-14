@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "widget.h"
 #include <QtGui>
-#include <QTimer>
-#include <QDebug>
 #include <QFileDialog>
 #include <iostream>
 #include <QGraphicsRectItem>
@@ -22,10 +20,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    temps = new QTimer();
-    connect(temps,SIGNAL(timeout()),this,SLOT (print()));
-    temps->setInterval(1000);
-    temps->start();
     nb_label = 0;
     traitement = NULL;
     label = new QLabel(this);
@@ -67,13 +61,12 @@ MainWindow::~MainWindow()
     traitement = NULL;
 }
 
-void MainWindow::carteProfondeur(){
-    while(1){
-        cv::Mat matG(imageG.height(),imageG.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
-        cv::Mat matD(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
-        MainWindow::extractionFeatures(matG,matD);
-        MainWindow::blockMatching(matG,matD);
-    }
+void MainWindow::carteDisparite(){
+    cv::Mat matG(imageG.height(),imageG.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
+    cv::Mat matD(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
+    MainWindow::extractionFeatures(matG,matD);
+    MainWindow::blockMatching(matG,matD);
+    qDebug() << "TEST";
 }
 
 void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
@@ -108,7 +101,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     cvtColor(img1, g1, CV_BGR2GRAY);
     cvtColor(img2, g2, CV_BGR2GRAY);
 
-
+    /*
     cv::StereoBM sbm;
         sbm.state->SADWindowSize = 9;
         sbm.state->numberOfDisparities = 112;
@@ -122,11 +115,12 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
         sbm.state->disp12MaxDiff = 64;
     sbm(g2, g1, dispo);
     normalize(dispo, disp8o, 0, 255, CV_MINMAX, CV_8U);
-    //imshow("dispo", disp8o);
+    imshow("dispo", disp8o);
+    */
 
 
-
-    /*cv::StereoSGBM sgbm = cv::StereoSGBM::create(0,    //int minDisparity
+    /*
+    Ptr<StereoSGBM> sgbm = StereoSGBM::create(0,    //int minDisparity
                                         96,     //int numDisparities
                                         5,      //int SADWindowSize
                                         600,    //int P1 = 0
@@ -153,19 +147,27 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sgbm.P2 = 2400;
     sgbm(g1, g2, disp);
     normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
-    //imshow("disp", disp8);
-    afficherMat(disp8,image.Format_Indexed8);
+    imshow("disp", disp8);
+
+
+    cv::Mat depthMap = disp8.clone();
+    for(int y = 0; y < disp8.rows;y++)
+        for(int x = 0; x < disp8.cols;x++) {
+            cv::Scalar intensity = disp8.at<uchar>(y,x);
+            if (intensity.val[0] == 0){
+                depthMap.at<uchar>(y,x) = (60*3.5)/(( intensity.val[0]+1/disp8.cols)*6);
+                qDebug()<< "Intensity 0:" << (60*3.5)/(( intensity.val[0]+1/disp8.cols)*6);
+            }else{
+                depthMap.at<uchar>(y,x) = (60*3.5)/(( intensity.val[0]/disp8.cols)*6);
+                qDebug()<< "Intensity:" << (60*3.5)/(( intensity.val[0]+1/disp8.cols)*6);
+            }
+        }
+    imshow("profondeur", depthMap);
 
     //pour enregistrer l'image obtenue
-    maptmp.save("/net/cremi/mvalleron/Bureau/test.png");
-    int a = 0;
-    a.save("/net/cremi/mvalleron/Bureau/comunication.txt");
+    //maptmp.save("/net/cremi/adomen910e/Bureau/STEREO/STEREO/test.png");
 
 
-}
-
-void MainWindow::print(){
-    qDebug() << "ok";
 }
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
@@ -226,6 +228,7 @@ void MainWindow::afficherMat(cv::Mat mat,QImage::Format format){
     labeltmp->setPixmap(maptmp);
     this->resize(2*label->width(),label->height());
 }
+
 void MainWindow::sobelSlot(){
     nb_label = 2;
     cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
@@ -242,7 +245,6 @@ void MainWindow::sobelSlot(){
     afficherMat(imageCV,image.Format_Indexed8);
 }
 void MainWindow::cannySlot(){
-    qDebug() << temps->interval();
     nb_label = 2;
     cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
     cv::Mat imgGrayscale;
@@ -266,7 +268,7 @@ void MainWindow::floutage(){
 
 void MainWindow::separation(){
     traitement->addAction(carteProfondeurAction);
-    QObject::connect(carteProfondeurAction,SIGNAL(triggered()),this,SLOT(carteProfondeur()));
+    QObject::connect(carteProfondeurAction,SIGNAL(triggered()),this,SLOT(carteDisparite()));
     nb_label = 2;
     this->resize(image.width(),image.height()+30);
     QImage image1(w/2,h,QImage::Format_RGB32);
@@ -277,24 +279,17 @@ void MainWindow::separation(){
             image2.setPixel(x,y,image.pixel(x+w/2,y));
         }
     }
-    /*
     imageG = image1;
     imageD = image2;
-    */
-    QImageReader *reader = new QImageReader();
-    reader->setFileName("/net/cremi/mvalleron/Bureau/New Render Texture.png");
-    imageG =reader->read();
-    reader->setFileName("/net/cremi/mvalleron/Bureau/New Render Texture 1.png");
-    imageD =reader->read();
     qDebug("%d",imageD.width());
     map=QPixmap::fromImage(imageG);
     label->setPixmap(map);
     label->show();
     map=QPixmap::fromImage(imageD);
-    labeltmp->move(imageG.width()+10,30);
+    labeltmp->move(w/2+10,30);
     labeltmp->setPixmap(map);
     labeltmp->show();
-    this->resize(image.width()*2,image.height());
+    this->resize(image.width(),image.height());
 }
 
 void MainWindow::quit()
@@ -335,13 +330,9 @@ bool MainWindow::enregistrer_fichier_m (const QString &fileName){
 }
 
 void MainWindow:: enregistrer_m(){
-    QString dir=QFileDialog::getExistingDirectory(this, tr("Choisir ou créer votre repertoire de travail!"), "/net/cremi/mvalleron/Bureau/test.png", QFileDialog::ShowDirsOnly);
+    QString dir=QFileDialog::getExistingDirectory(this, tr("Choisir ou créer votre repertoire de travail!"), "/net/cremi/adomen910e/Bureau/STEREO/STEREO/test.png", QFileDialog::ShowDirsOnly);
     QString fileName= QFileDialog::getSaveFileName(this, tr("Enregistrer votre fichier dans votre repertoire de travaiol!"), dir, tr("*.png;; *.xpm;; *.jpg;;*.txt;; *.doc;;*.xml;;*.bin"));
     if (fileName.isEmpty())
         return ;
     enregistrer_fichier_m(fileName);
 }
-
-
-
-
