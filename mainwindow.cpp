@@ -219,6 +219,9 @@ void MainWindow::differenceImage(){
             }
         }
 
+    imshow("diffImage", diffImage);
+    imshow("foreground", foregroundMask);
+
 }
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
