@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     label = new QLabel(this);
     labeltmp = new QLabel(this);
     label->move(0,30);
+    firstTime = true;
 
     //Mise en place des boutons
     aProposAction=new QAction(tr("&A Propos"),this);
@@ -184,6 +185,12 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     tabImage.insert(nbImage,depthMap);
     nbImage++;
 
+    if (!firstTime){
+        differenceImage();
+    }
+
+    firstTime = false;
+
     //pour enregistrer l'image obtenue
     //maptmp.save("/net/cremi/adomen910e/Bureau/STEREO/STEREO/test.png");
 
@@ -191,7 +198,6 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
 }
 
 void MainWindow::differenceImage(){
-    cv::Mat diffImage;
     cv::absdiff(tabImage.value(0), tabImage.value(1) , diffImage);
 
     cv::Mat foregroundMask = cv::Mat::zeros(diffImage.rows, diffImage.cols, CV_8UC1);
