@@ -2,6 +2,7 @@
 #include "widget.h"
 #include <QtGui>
 #include <QTimer>
+#include <QDateTime>
 #include <QDebug>
 #include <QFileDialog>
 #include <iostream>
@@ -24,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     temps = new QTimer();
     connect(temps,SIGNAL(timeout()),this,SLOT (print()));
-    temps->setInterval(1000);
+    temps->setInterval(10);
     temps->start();
     nb_label = 0;
     traitement = NULL;
@@ -49,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(aProposAction,SIGNAL(triggered()),this,SLOT(afficherMessage()));
     QObject::connect(ouvrir,SIGNAL(triggered()),this,SLOT(openFile()));
     QObject::connect(quitter,SIGNAL(triggered()),this,SLOT(quit()));
-
+    MainWindow::openFile();
 }
 
 MainWindow::~MainWindow()
@@ -68,12 +69,10 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::carteProfondeur(){
-    while(1){
-        cv::Mat matG(imageG.height(),imageG.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
-        cv::Mat matD(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
-        MainWindow::extractionFeatures(matG,matD);
-        MainWindow::blockMatching(matG,matD);
-    }
+    cv::Mat matG(imageG.height(),imageG.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
+    cv::Mat matD(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
+    MainWindow::extractionFeatures(matG,matD);
+    MainWindow::blockMatching(matG,matD);
 }
 
 void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
@@ -158,14 +157,26 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
 
     //pour enregistrer l'image obtenue
     maptmp.save("/net/cremi/mvalleron/Bureau/test.png");
-    int a = 0;
-    a.save("/net/cremi/mvalleron/Bureau/comunication.txt");
+    //a.save("/net/cremi/mvalleron/Bureau/comunication.txt");
 
 
 }
 
 void MainWindow::print(){
-    qDebug() << "ok";
+    //QFile file("/net/cremi/mvalleron/Bureau/comunication.txt");
+    //file.open(QIODevice::WriteOnly);
+    //QDataStream out(&file);   // we will serialize the data into the file
+    //out << "\n1\n";
+    //if(QDateTime::currentMSecsSinceEpoch())
+    if(timerinit){
+        MainWindow::separation();
+        MainWindow::carteProfondeur();
+    }
+    if(QDateTime::currentMSecsSinceEpoch()/10-(QDateTime::currentMSecsSinceEpoch()/1000)*100 == 75 && !timerinit){
+        temps->setInterval(500);
+        timerinit = true;
+        MainWindow::separation();
+    }
 }
 
 void MainWindow::sauverRectangle (QRect *rect, QString s)
@@ -192,11 +203,11 @@ void MainWindow::openFile()
     }
     nb_label = 1;
     labeltmp->clear();
-    QString fileName = QFileDialog::getOpenFileName(this,tr("Ouvrir une image"),"/",tr("Image Files (*.png *.jpg *.bmp)"));
+    //QString fileName = QFileDialog::getOpenFileName(this,tr("Ouvrir une image"),"/",tr("Image Files (*.png *.jpg *.bmp)"));
     QImageReader *reader = new QImageReader();
     //pour aller chercher une image a un endroit donné
-    //reader->setFileName("/net/cremi/adomen910e/Bureau/STEREO/STEREO/9306e7531d18d355992639855234198f.png");
-    reader->setFileName(fileName);
+    reader->setFileName("/net/cremi/mvalleron/Bureau/New Render Texture.png");
+    //reader->setFileName(fileName);
     image =reader->read();
     map=QPixmap::fromImage(image);
     label->setPixmap(map);

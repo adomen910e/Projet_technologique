@@ -77,6 +77,7 @@ private:
     int w;
     int nb_label;
     bool init = true;
+    bool timerinit = false;
 };
 
 #endif // MAINWINDOW_H
