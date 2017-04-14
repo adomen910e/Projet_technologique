@@ -71,6 +71,7 @@ private:
     QPixmap qpix;
     QPixmap maptmp;
     cv::Mat imageCV;
+    cv::Mat diffImage;
 
     QVector<cv::Mat> tabImage;
 
