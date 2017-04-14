@@ -20,26 +20,35 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    //Variable Glabale
     nb_label = 0;
     traitement = NULL;
     label = new QLabel(this);
     labeltmp = new QLabel(this);
     label->move(0,30);
+
+    //Mise en place des boutons
     aProposAction=new QAction(tr("&A Propos"),this);
     ouvrir=new QAction(tr("&Ouvrir"),this);
     quitter=new QAction(tr("&Quitter"),this);
     separerImage=new QAction(tr("&Separer l'image en 2"),this);
-    aPropos = menuBar()->addMenu(tr("&A Propos"));
-    fichier = menuBar()->addMenu(tr("&Fichier"));
     flouterImage=new QAction(tr("&Flouter l'image"),this);
     sobel=new QAction(tr("&Effet Sobel"),this);
     canny=new QAction(tr("&Effet Canny"),this);
     carteProfondeurAction=new QAction(tr("&Carte de Disparite"),this);
+
+    //Mise en place de la barre de menu
+    aPropos = menuBar()->addMenu(tr("&A Propos"));
+    fichier = menuBar()->addMenu(tr("&Fichier"));
     aPropos->addAction(aProposAction);
     fichier->addAction(ouvrir);
     fichier->addAction(quitter);
+
+    //Mise en place du rectangle de selection
     widge = new Widget(this);
     this->setCentralWidget(widge);
+
+    //Connection des boutons avec une action
     QObject::connect(aProposAction,SIGNAL(triggered()),this,SLOT(afficherMessage()));
     QObject::connect(ouvrir,SIGNAL(triggered()),this,SLOT(openFile()));
     QObject::connect(quitter,SIGNAL(triggered()),this,SLOT(quit()));
@@ -48,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    //destructeur
     aPropos=NULL;
     fichier=NULL;
     label=NULL;
@@ -62,11 +72,15 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::carteDisparite(){
+    //Récupération des matrices gauches et droites
     cv::Mat matG(imageG.height(),imageG.width() ,CV_8UC4,(uchar*)imageG.bits(),imageG.bytesPerLine());
     cv::Mat matD(imageD.height(),imageD.width() ,CV_8UC4,(uchar*)imageD.bits(),imageD.bytesPerLine());
+
+    //Extraction des points d'interets
     MainWindow::extractionFeatures(matG,matD);
+
+    //Cretaion de la carte de disparité + carte de profondeur
     MainWindow::blockMatching(matG,matD);
-    qDebug() << "TEST";
 }
 
 void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
@@ -86,7 +100,7 @@ void MainWindow::extractionFeatures( cv::Mat imgD, cv::Mat imgG){
     cv::vector<cv::DMatch> matches;
     matcher.match(descriptors1, descriptors2, matches);
 
-    // drawing the results
+    //Affichage du resultat
     //cv::namedWindow("matches", CV_WINDOW_AUTOSIZE);
     //cv::Mat img_matches;
     //cv::drawMatches(imgD, keypoints1, imgG, keypoints2, matches, img_matches);
@@ -164,9 +178,40 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
         }
     imshow("profondeur", depthMap);
 
+
+    //Enregistrement carte de profondeur
+    nbImage=nbImage%2;
+    tabImage.insert(nbImage,depthMap);
+    nbImage++;
+
     //pour enregistrer l'image obtenue
     //maptmp.save("/net/cremi/adomen910e/Bureau/STEREO/STEREO/test.png");
 
+
+}
+
+void MainWindow::differenceImage(){
+    cv::Mat diffImage;
+    cv::absdiff(tabImage.value(0), tabImage.value(1) , diffImage);
+
+    cv::Mat foregroundMask = cv::Mat::zeros(diffImage.rows, diffImage.cols, CV_8UC1);
+
+    float threshold = 30.0f;
+    float dist;
+
+    for(int j=0; j<diffImage.rows; ++j)
+        for(int i=0; i<diffImage.cols; ++i)
+        {
+            cv::Vec3b pix = diffImage.at<cv::Vec3b>(j,i);
+
+            dist = (pix[0]*pix[0] + pix[1]*pix[1] + pix[2]*pix[2]);
+            dist = sqrt(dist);
+
+            if(dist>threshold)
+            {
+                foregroundMask.at<unsigned char>(j,i) = 255;
+            }
+        }
 
 }
 

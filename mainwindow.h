@@ -41,7 +41,7 @@ public slots:
     void carteDisparite();
     bool enregistrer_fichier_m(const QString &fileName);
     void enregistrer_m();
-   // void print();
+    void differenceImage();
 
 public:
     QWidget *widge;
@@ -71,6 +71,10 @@ private:
     QPixmap qpix;
     QPixmap maptmp;
     cv::Mat imageCV;
+
+    QVector<cv::Mat> tabImage;
+
+    int nbImage;
     int xrec;
     int yrec;
     int h;
