@@ -124,7 +124,6 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     //imshow("dispo", disp8o);
 
 
-
     /*cv::StereoSGBM sgbm = cv::StereoSGBM::create(0,    //int minDisparity
                                         96,     //int numDisparities
                                         5,      //int SADWindowSize
@@ -138,7 +137,7 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
                                         true);  //bool fullDP = false*/
 
 
-    cv::StereoSGBM sgbm;
+    /*cv::StereoSGBM sgbm;
     sgbm.SADWindowSize = 5;
     sgbm.numberOfDisparities = 192;
     sgbm.preFilterCap = 4;
@@ -153,8 +152,37 @@ void MainWindow::blockMatching(cv::Mat img1,cv::Mat img2){
     sgbm(g1, g2, disp);
     normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
     //imshow("disp", disp8);
-    afficherMat(disp8,image.Format_Indexed8);
+    afficherMat(disp8,image.Format_Indexed8);*/
 
+    /*cv::StereoSGBM sgbm;
+    sgbm.SADWindowSize = 5;
+    sgbm.numberOfDisparities = 192;
+    sgbm.preFilterCap = 4;
+    sgbm.minDisparity = -64;
+    sgbm.uniquenessRatio = 1;
+    sgbm.speckleWindowSize = 150;
+    sgbm.speckleRange = 2;
+    sgbm.disp12MaxDiff = 10;
+    sgbm.fullDP = false;
+    sgbm.P1 = 600;
+    sgbm.P2 = 2400;
+    sgbm(g1, g2, disp);
+    normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);*/
+    //imshow("disp", disp8);
+
+
+    cv::Mat depthMap = disp8o.clone();
+    for(int y = 0; y < disp8o.rows;y++)
+        for(int x = 0; x < disp8o.cols;x++) {
+            cv::Scalar intensity = disp8o.at<uchar>(y,x);
+            if (intensity.val[0] == 0){
+                depthMap.at<uchar>(y,x) = (60*3.5)/(( intensity.val[0]+1/disp8o.cols)*6);
+            }else{
+                depthMap.at<uchar>(y,x) = (60*3.5)/(( intensity.val[0]/disp8o.cols)*6);
+            }
+        }
+    //imshow("profondeur", depthMap);
+    afficherMat(depthMap,image.Format_Indexed8);
     //pour enregistrer l'image obtenue
     maptmp.save("/net/cremi/mvalleron/Bureau/test.png");
     //a.save("/net/cremi/mvalleron/Bureau/comunication.txt");
@@ -253,7 +281,6 @@ void MainWindow::sobelSlot(){
     afficherMat(imageCV,image.Format_Indexed8);
 }
 void MainWindow::cannySlot(){
-    qDebug() << temps->interval();
     nb_label = 2;
     cv::Mat tmp(image.height(),image.width(),CV_8UC4,(uchar*)image.bits(),image.bytesPerLine());
     cv::Mat imgGrayscale;
@@ -297,7 +324,6 @@ void MainWindow::separation(){
     imageG =reader->read();
     reader->setFileName("/net/cremi/mvalleron/Bureau/New Render Texture 1.png");
     imageD =reader->read();
-    qDebug("%d",imageD.width());
     map=QPixmap::fromImage(imageG);
     label->setPixmap(map);
     label->show();
